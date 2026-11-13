@@ -1,0 +1,3 @@
+Traceleaf — especificação para implementação. Atualizado em 11/11/2026.
+Comece por ai-engineer/projeto-base-conhecimento-ia/00-leia-primeiro.md.
+O pacote contém 12 documentos de especificação e 2 relatórios de pesquisa. Preserve a estrutura para manter os links relativos.

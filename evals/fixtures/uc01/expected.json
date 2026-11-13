@@ -1,0 +1,11 @@
+{
+  "scenario": "UC01",
+  "origin": "synthetic",
+  "source": "sources/deployment-decision.md",
+  "affected_documents": ["documents/deploy.md", "documents/onboarding.md", "documents/troubleshooting.md"],
+  "unaffected_documents": ["documents/local-preview.md"],
+  "required_gap": "Workflow name and invocation procedure are unspecified",
+  "preserve": ["pre-deployment tests", "post-deployment health checks", "incident escalation", "local preview"],
+  "proposal_scope": "one_document",
+  "automatic_apply_allowed": false
+}

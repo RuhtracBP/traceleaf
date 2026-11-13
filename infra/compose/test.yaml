@@ -1,0 +1,34 @@
+name: traceleaf-test
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.7-pg17-bookworm@sha256:b513c48566e4777cd3370451400000c78eda6a08131d68f4c31d4a76f27bd8fd
+    environment:
+      POSTGRES_USER: traceleaf
+      POSTGRES_PASSWORD: isolated-test-only
+      POSTGRES_DB: traceleaf_test
+    healthcheck:
+      test: [CMD, pg_isready, -h, 127.0.0.1, -U, traceleaf, -d, traceleaf_test]
+      start_period: 120s
+      interval: 2s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:8.8.4-alpine@sha256:1273af45b299d2b8b60d0e400d90aa6c2c5b1794f01d6a7ca60ff3ba6e65efb5
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+  checks:
+    build:
+      context: ../..
+      dockerfile: infra/compose/api.Dockerfile
+      target: test
+    environment:
+      TRACELEAF_INTEGRATION_DATABASE_URL: postgresql+psycopg://traceleaf:isolated-test-only@postgres:5432/traceleaf_test
+      TRACELEAF_INTEGRATION_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy

@@ -1,0 +1,20 @@
+{
+  "name": "traceleaf",
+  "private": true,
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=26.13.1 <27"
+  },
+  "scripts": {
+    "format:check": "prettier --check apps/web playwright.config.ts tests/e2e package.json pnpm-workspace.yaml compose.yaml infra/compose/*.yaml .github/workflows/*.yml",
+    "dev": "pnpm --filter @traceleaf/web dev",
+    "build": "pnpm --filter @traceleaf/web build",
+    "typecheck": "pnpm --filter @traceleaf/web typecheck",
+    "test": "pnpm --filter @traceleaf/web test",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "prettier": "3.10.1"
+  }
+}

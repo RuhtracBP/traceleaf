@@ -1,0 +1,41 @@
+[project]
+name = "traceleaf"
+version = "0.1.0"
+description = "Evidence-backed maintenance for Markdown knowledge bases"
+requires-python = ">=3.12,<3.13"
+dependencies = ["traceleaf-api", "traceleaf-core"]
+
+[tool.uv]
+package = false
+required-version = "==0.13.8"
+
+[tool.uv.workspace]
+members = ["apps/api", "packages/core"]
+
+[tool.uv.sources]
+traceleaf-api = { workspace = true }
+traceleaf-core = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "pytest==9.2.0",
+  "httpx==0.28.1",
+  "ruff==0.17.5",
+  "mypy==2.4.1",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["traceleaf_core", "traceleaf_api"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: requires a dedicated PostgreSQL test database and Redis"]

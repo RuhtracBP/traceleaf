@@ -1,0 +1,85 @@
+name: traceleaf
+
+x-api: &api
+  build:
+    context: .
+    dockerfile: infra/compose/api.Dockerfile
+    target: runtime
+  environment:
+    TRACELEAF_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-traceleaf}:${POSTGRES_PASSWORD:?Run python3 scripts/setup_env.py first}@postgres:5432/${POSTGRES_DB:-traceleaf}
+    TRACELEAF_REDIS_URL: redis://redis:6379/0
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.7-pg17-bookworm@sha256:b513c48566e4777cd3370451400000c78eda6a08131d68f4c31d4a76f27bd8fd
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-traceleaf}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run python3 scripts/setup_env.py first}
+      POSTGRES_DB: ${POSTGRES_DB:-traceleaf}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # The initialization server accepts Unix sockets before TCP is ready.
+      test:
+        [
+          CMD-SHELL,
+          'pg_isready -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"',
+        ]
+      start_period: 120s
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:8.8.4-alpine@sha256:1273af45b299d2b8b60d0e400d90aa6c2c5b1794f01d6a7ca60ff3ba6e65efb5
+    command: [redis-server, --appendonly, "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  migrate:
+    <<: *api
+    command: [alembic, upgrade, head]
+    depends_on:
+      postgres:
+        condition: service_healthy
+  api:
+    <<: *api
+    ports:
+      - "127.0.0.1:${TRACELEAF_API_PORT:-8000}:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          CMD,
+          python,
+          -c,
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=8)",
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+  web:
+    build:
+      context: .
+      dockerfile: infra/compose/web.Dockerfile
+    ports:
+      - "127.0.0.1:${TRACELEAF_WEB_PORT:-8080}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, wget, -q, --spider, http://127.0.0.1:8080/]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -11,3 +11,9 @@ __pycache__/
 node_modules/
 dist/
 coverage/
+*.egg-info/
+.coverage
+htmlcov/
+playwright-report/
+test-results/
+*.tsbuildinfo
